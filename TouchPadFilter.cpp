@@ -53,11 +53,11 @@
 
 extern "C" _EXPORT BInputServerFilter* instantiate_input_filter();
 
-class TouchpadSensitivityFilter : public BInputServerFilter 
+class TouchPadFilter : public BInputServerFilter 
 {
 	public:
-		TouchpadSensitivityFilter();
-		virtual ~TouchpadSensitivityFilter();
+		TouchPadFilter();
+		virtual ~TouchPadFilter();
 		virtual	filter_result Filter(BMessage *message, BList *outList);
 
 	private:
@@ -65,7 +65,8 @@ class TouchpadSensitivityFilter : public BInputServerFilter
 		bigtime_t _threshold;
 };
 
-TouchpadSensitivityFilter::TouchpadSensitivityFilter()
+
+TouchPadFilter::TouchPadFilter()
 {
 	_lastKeyUp = 0;
 	_threshold = 300; //~one third of a second?
@@ -105,12 +106,12 @@ TouchpadSensitivityFilter::TouchpadSensitivityFilter()
 }
 
 
-TouchpadSensitivityFilter::~TouchpadSensitivityFilter()
+TouchPadFilter::~TouchPadFilter()
 {
 }
 
 
-filter_result TouchpadSensitivityFilter::Filter(BMessage *message,
+filter_result TouchPadFilter::Filter(BMessage *message,
 	BList *outList)
 {
 	filter_result res = B_DISPATCH_MESSAGE;
@@ -145,7 +146,8 @@ filter_result TouchpadSensitivityFilter::Filter(BMessage *message,
 //*************************************************************************
 //Exported instantiator
 
+
 BInputServerFilter* instantiate_input_filter()
 {
-	return (new TouchpadSensitivityFilter());
+	return (new TouchPadFilter());
 }
