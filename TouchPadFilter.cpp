@@ -51,13 +51,6 @@
 #include <add-ons/input_server/InputServerFilter.h>
 
 
-//#define Z_DEBUG 1
-
-
-#if Z_DEBUG
-#include <BeDC.h>
-#endif
-
 extern "C" _EXPORT BInputServerFilter* instantiate_input_filter();
 
 class TouchpadSensitivityFilter : public BInputServerFilter 
@@ -77,48 +70,30 @@ TouchpadSensitivityFilter::TouchpadSensitivityFilter()
 	_lastKeyUp = 0;
 	_threshold = 300; //~one third of a second?
 
-	#if Z_DEBUG
-	BeDC dc("TouchpadSensitivityFilter");
-	#endif
-
 	//load settings file
 
 	BPath settingsPath;
 	if (find_directory(B_USER_SETTINGS_DIRECTORY, &settingsPath) == B_OK)
 	{
-		settingsPath.Append("touchpad_sensitivity_filter_prefs.txt");
+		settingsPath.Append("TouchPadFilter_settings");
 		BEntry settingsEntry(settingsPath.Path());
 		
 		//does the settings file exist?
-		if (!settingsEntry.Exists())
-		{
-			#if Z_DEBUG
-			dc.SendMessage("Settings file does not exist. Creating new one.");
-			#endif
+		if (!settingsEntry.Exists()) {
+			BFile defaultSettingsFile(&settingsEntry, B_CREATE_FILE |
+				B_READ_WRITE);
 
-		
-			BFile defaultSettingsFile(&settingsEntry, B_CREATE_FILE | B_READ_WRITE);
-
-			if (defaultSettingsFile.IsWritable())
-			{
+			if (defaultSettingsFile.IsWritable()) {
 				//write in default settings
 				char buf[64];
 				sprintf(buf, "%ld #delay in thousandths", (int32)_threshold);
 				defaultSettingsFile.WriteAt(0, (void *)buf, strlen(buf));
 				defaultSettingsFile.Unset();
-			}
-				
-		}
-		else
-		{
-			#if Z_DEBUG
-			dc.SendMessage("Settings file Exists");
-			#endif
-		
+			}		
+		} else {
 			BFile settingsFile(&settingsEntry, B_READ_WRITE);
 		
-			if (settingsFile.IsReadable())
-			{
+			if (settingsFile.IsReadable()) {
 				char buf[256];
 				uint32 amt_read = settingsFile.ReadAt(0, (void *)buf, 256);
 				buf[amt_read] = '\0';
@@ -126,17 +101,17 @@ TouchpadSensitivityFilter::TouchpadSensitivityFilter()
 			}
 		}
 	}
-		
 	_threshold *= 1000; //I'd rather keep the number in the file in thousandths
-	
-	#ifdef Z_DEBUG
-	dc.SendInt(_threshold, "Touchpad threshold.");
-	#endif
 }
 
-TouchpadSensitivityFilter::~TouchpadSensitivityFilter(){}
 
-filter_result TouchpadSensitivityFilter::Filter(BMessage *message, BList *outList)
+TouchpadSensitivityFilter::~TouchpadSensitivityFilter()
+{
+}
+
+
+filter_result TouchpadSensitivityFilter::Filter(BMessage *message,
+	BList *outList)
 {
 	filter_result res = B_DISPATCH_MESSAGE;
 	
@@ -163,15 +138,6 @@ filter_result TouchpadSensitivityFilter::Filter(BMessage *message, BList *outLis
 			break;		
 		}
 	}	
-	
-	#if Z_DEBUG	
-	if (res == B_SKIP_MESSAGE)
-	{
-		BeDC dc("TouchpadSensitivityFilter");
-		dc.SendMessage("Skipping mouse down event");
-	}
-	#endif
-
 	return (res);
 }
 
